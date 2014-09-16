@@ -310,7 +310,7 @@ function shibboleth_authenticate_user() {
 	}
 
 	$username = shibboleth_getenv($shib_headers['username']['name']);
-	$user = new WP_User($username);
+	$user = new WP_User(0, $username);
 
 	if ( $user->ID ) {
 		if ( !get_usermeta($user->ID, 'shibboleth_account') ) {
