@@ -19,6 +19,26 @@ if ($shibboleth_plugin_revision === false || SHIBBOLETH_PLUGIN_REVISION != $shib
 }
 
 /**
+ * Fastcgi-php friendly getenv() replacement that handles
+ * REDIRECT_ environment variables automatically.
+ */
+function shibboleth_getenv( $var ) {
+    $var_under = str_replace('-', '_', $var);
+    $check_vars = array(
+        $var => TRUE,
+        'REDIRECT_' . $var => TRUE,
+        $var_under => TRUE,
+        'REDIRECT_' . $var_under => TRUE,
+    );
+    foreach ($check_vars as $check_var => $true) {
+        if ( ($result = getenv($check_var)) !== FALSE ) {
+            return $result;
+        }
+    }
+    return FALSE;
+}
+
+/**
  * Perform automatic login. This is based on the user not being logged in,
  * an active session and the option being set to true.
  */
@@ -31,7 +51,7 @@ function shibboleth_auto_login() {
 		if ( is_wp_error($userobj) ) {
 			// TODO: Proper error return.
 		} else {
-			wp_safe_redirect($_SERVER['REQUEST_URI']);
+			wp_safe_redirect(shibboleth_getenv('REQUEST_URI'));
 			exit();
 		}
 	}
@@ -175,9 +195,9 @@ add_action('init', 'shibboleth_admin_hooks');
 function shibboleth_session_active() {
 	$active = false;
 
-	$session_headers = array('Shib-Session-ID', 'Shib_Session_ID', 'HTTP_SHIB_IDENTITY_PROVIDER');
+	$session_headers = array('Shib-Session-ID', 'HTTP_SHIB_IDENTITY_PROVIDER');
 	foreach ($session_headers as $header) {
-		if ( array_key_exists($header, $_SERVER) && !empty($_SERVER[$header]) ) {
+		if ( shibboleth_getenv($header) ) {
 			$active = true;
 			break;
 		}
@@ -316,8 +336,8 @@ function shibboleth_authenticate_user() {
 		return new WP_Error('no_access', __('You do not have sufficient access.'));
 	}
 
-	$username = $_SERVER[$shib_headers['username']['name']];
-	$user = new WP_User($username);
+	$username = shibboleth_getenv($shib_headers['username']['name']);
+	$user = new WP_User(0, $username);
 
 	if ( $user->ID ) {
 		if ( !get_usermeta($user->ID, 'shibboleth_account') ) {
@@ -398,7 +418,7 @@ function shibboleth_get_user_role() {
 
 		if ( empty($role_header) || empty($role_value) ) continue;
 
-		$values = split(';', $_SERVER[$role_header]);
+		$values = explode(';', shibboleth_getenv($role_header));
 		if ( in_array($role_value, $values) ) {
 			$user_role = $key;
 			break;
@@ -463,7 +483,7 @@ function shibboleth_update_user_data($user_id, $force_update = false) {
 	foreach ($user_fields as $field => $header) {
 		if ( $force_update || $shib_headers[$header]['managed'] ) {
 			$filter = 'shibboleth_' . ( strpos($field, 'user_') === 0 ? '' : 'user_' ) . $field;
-			$user_data[$field] = apply_filters($filter, $_SERVER[$shib_headers[$header]['name']]);
+			$user_data[$field] = apply_filters($filter, shibboleth_getenv($shib_headers[$header]['name']));
 		}
 	}
 
@@ -487,7 +507,7 @@ add_filter( 'shibboleth_user_nicename', 'sanitize_user' );
 function shibboleth_login_form() {
 	$login_url = add_query_arg('action', 'shibboleth');
 	$login_url = remove_query_arg('reauth', $login_url);
-	echo '<p id="shibboleth_login"><a href="' . $login_url . '">' . __('Login with Shibboleth', 'shibboleth') . '</a></p>';
+	echo '<p id="shibboleth_login"><a href="' . esc_url($login_url) . '">' . __('Login with Shibboleth', 'shibboleth') . '</a></p>';
 }
 add_action('login_form', 'shibboleth_login_form');
 
