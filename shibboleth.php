@@ -63,7 +63,7 @@ add_action('init', 'shibboleth_auto_login');
  * This function allows for private post types to redirect through Shibboleth.
  */
  function shibboleth_private_status_redirect() {
-         if(shibboleth_get_option('shibboleth_private_redirect')) {
+         if(!is_user_logged_in() && shibboleth_get_option('shibboleth_private_redirect')) {
                  $arr = get_post_types();
                  if(shibboleth_get_option('shibboleth_private_posttypes')) {
                          $arr = array_map('trim', explode(',', shibboleth_get_option('shibboleth_private_posttypes')));
@@ -71,7 +71,7 @@ add_action('init', 'shibboleth_auto_login');
                  $pg = get_page_by_path(basename(untrailingslashit($_SERVER['REQUEST_URI'])), OBJECT, $arr);
                  if($pg) {
                          $status = get_post_status($pg->ID);
-                         if("private" == $status && !is_user_logged_in()) {
+                         if("private" == $status) {
                                  $target = "/wp-login.php";
                                  $target = add_query_arg("action", "shibboleth", $target);
                                  $target = add_query_arg("redirect_to", urlencode($_SERVER["REQUEST_URI"]), $target);
@@ -293,7 +293,10 @@ function shibboleth_session_initiator_url($redirect = null) {
 
 	// first build the target URL.  This is the WordPress URL the user will be returned to after Shibboleth
 	// is done, and will handle actually logging the user into WordPress using the data provdied by Shibboleth
-	if ( function_exists('switch_to_blog') ) switch_to_blog($GLOBALS['current_site']->blog_id);
+	if ( function_exists('switch_to_blog') ) {
+		if ( is_multisite() ) switch_to_blog($GLOBALS['current_blog']->blog_id);
+		else switch_to_blog($GLOBALS['current_site']->blog_id);
+	}
 	$target = site_url('wp-login.php');
 	if ( function_exists('restore_current_blog') ) restore_current_blog();
 
