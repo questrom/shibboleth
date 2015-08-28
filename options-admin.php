@@ -80,15 +80,15 @@ function shibboleth_options_page() {
 		shibboleth_update_option('shibboleth_roles', $shib_roles);
 
 		shibboleth_update_option('shibboleth_login_url', $_POST['login_url']);
-    shibboleth_update_option('shibboleth_logout_url', $_POST['logout_url']);
-    shibboleth_update_option('shibboleth_password_change_url', $_POST['password_change_url']);
-    shibboleth_update_option('shibboleth_password_reset_url', $_POST['password_reset_url']);
-    shibboleth_update_option('shibboleth_default_login', (boolean) $_POST['default_login']);
-    shibboleth_update_option('shibboleth_auto_login', (boolean) $_POST['auto_login']);
-    shibboleth_update_option('shibboleth_private_redirect', (isset($_POST['private_redirect']) ? (boolean) $_POST['private_redirect'] : false));
+    	shibboleth_update_option('shibboleth_logout_url', $_POST['logout_url']);
+    	shibboleth_update_option('shibboleth_password_change_url', $_POST['password_change_url']);
+    	shibboleth_update_option('shibboleth_password_reset_url', $_POST['password_reset_url']);
+    	shibboleth_update_option('shibboleth_default_login', (boolean) $_POST['default_login']);
+    	shibboleth_update_option('shibboleth_auto_login', (boolean) $_POST['auto_login']);
+    	shibboleth_update_option('shibboleth_private_redirect', (isset($_POST['private_redirect']) ? (boolean) $_POST['private_redirect'] : false));
 		shibboleth_update_option('shibboleth_private_posttypes', $_POST['private_posttypes']);
 		shibboleth_update_option('shibboleth_update_users', (boolean) $_POST['update_users']);
-    shibboleth_update_option('shibboleth_update_roles', (boolean) $_POST['update_roles']);
+    	shibboleth_update_option('shibboleth_update_roles', (boolean) $_POST['update_roles']);
 
 		/**
 		 * action shibboleth_form_submit
@@ -167,8 +167,8 @@ function shibboleth_options_page() {
 			 <tr valign="top">
 						 <th scope="row"><label for="private_posttypes"><?php _e('Private Post Types to have use Shibboleth', 'shibboleth') ?></label></th>
 						 <td>
-										 <input type="text" id="private_posttypes" name="private_posttypes" value="<?php echo shibboleth_get_option('shibboleth_private_posttypes') ?>" size="50" /><br />
-										 <?php _e('If the private page/post redirect is set, you can specify a comma delimited list of post types here that will require a Shibboleth login. If not set, it will use all of the following: ' . implode(', ', get_post_types()) . '.', 'shibboleth') ?>
+							<input type="text" id="private_posttypes" name="private_posttypes" value="<?php echo shibboleth_get_option('shibboleth_private_posttypes') ?>" size="50" /><br />
+							<?php _e('If the private page/post redirect is set, you can specify a comma delimited list of post types here that will require a Shibboleth login. If not set, it will use all of the following: ' . implode(', ', get_post_types()) . '.', 'shibboleth') ?>
 						 </td>
 				 </tr>
 				<tr>

@@ -129,4 +129,3 @@ function shibboleth_personal_options_update() {
 		}
 	}
 }
-
