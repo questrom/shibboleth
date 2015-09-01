@@ -88,7 +88,8 @@ function shibboleth_options_page() {
     	shibboleth_update_option('shibboleth_private_redirect', (isset($_POST['private_redirect']) ? (boolean) $_POST['private_redirect'] : false));
 		shibboleth_update_option('shibboleth_private_posttypes', $_POST['private_posttypes']);
 		shibboleth_update_option('shibboleth_update_users', (boolean) $_POST['update_users']);
-    	shibboleth_update_option('shibboleth_update_roles', (boolean) $_POST['update_roles']);
+    	//shibboleth_update_option('shibboleth_update_roles', (boolean) $_POST['update_roles']);
+		shibboleth_update_option('shibboleth_update_roles', (boolean) false);
 
 		/**
 		 * action shibboleth_form_submit
@@ -362,7 +363,7 @@ if ( apply_filters('shibboleth_role_mapping_override',false) === false ):
 				<tr>
 					<th scope="row"><label for="update_roles"><?php _e('Update User Roles', 'shibboleth') ?></label></th>
 					<td>
-						<input type="checkbox" id="update_roles" name="update_roles" <?php echo shibboleth_get_option('shibboleth_update_roles') ? ' checked="checked"' : '' ?> />
+						<input type="checkbox" id="update_roles" name="update_roles" <?php echo shibboleth_get_option('shibboleth_update_roles') ? ' checked="checked"' : '' ?> disabled="disabled" />
 						<label for="update_roles"><?php _e('Use Shibboleth data to update user role mappings each time the user logs in.', 'shibboleth') ?></label>
 
 						<p><?php _e('Be aware that if you use this option, you should <strong>not</strong> update user roles manually,'
