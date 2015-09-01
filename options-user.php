@@ -54,7 +54,7 @@ function shibboleth_admin_footer_edit_user() {
 		$shibboleth_fields = array_merge($shibboleth_fields, shibboleth_get_managed_user_fields());
 
 		if (shibboleth_get_option('shibboleth_update_roles')) {
-			$shibboleth_fields = array_merge($shibboleth_fields, array('role'));
+			//$shibboleth_fields = array_merge($shibboleth_fields, array('role'));
 		}
 
 		if (!empty($shibboleth_fields)) {
