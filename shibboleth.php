@@ -303,7 +303,7 @@ function shibboleth_session_initiator_url($redirect = null) {
  * configured role-mapping), the user will not be allowed to login.
  *
  * If this is the first time we've seen this user (based on the username
- * attribute), a new account will be created.
+ * attri:qbute), a new account will be created.
  *
  * Known users will have their profile data updated based on the Shibboleth
  * data present if the plugin is configured to do so.
@@ -344,13 +344,12 @@ function shibboleth_authenticate_user() {
 	}
 
 	// update user data
-	update_usermeta($user->ID, 'shibboleth_account', true);
 	shibboleth_update_user_data($user->ID);
 	if ( shibboleth_get_option('shibboleth_update_roles') ) {
 		$user->set_role($user_role);
 		do_action( 'shibboleth_set_user_roles', $user );
 	}
-
+	shibboleth_create_user_meta($user);
 	return $user;
 }
 
@@ -364,12 +363,11 @@ function shibboleth_authenticate_user() {
 function shibboleth_create_new_user($user_login) {
 	if ( empty($user_login) ) return null;
 
-	// create account and flag as a shibboleth acount
+	// create account and flag as a shibboleth account
 	require_once( ABSPATH . WPINC . '/registration.php' );
 	$user_id = wp_insert_user(array('user_login'=>$user_login));
 	$user = new WP_User($user_id);
-	update_usermeta($user->ID, 'shibboleth_account', true);
-
+	
 	// always update user data and role on account creation
 	shibboleth_update_user_data($user->ID, true);
 	$user_role = shibboleth_get_user_role();
@@ -379,6 +377,20 @@ function shibboleth_create_new_user($user_login) {
 	return $user;
 }
 
+function shibboleth_create_user_meta($user) {
+	update_user_meta($user->ID, 'shibboleth_account', true);
+	update_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_user_level', 0);
+	update_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_capabilities', unserialize('a:1:{s:10:"subscriber";b:1;}'));
+}
+
+function shibboleth_get_current_site() {
+	if ( is_multisite() ) {
+		return $GLOBALS['current_blog']->blog_id;
+	}
+	else {
+		return $GLOBALS['current_site']->blog_id;
+	}
+}
 
 /**
  * Get the role the current user should have.  This is determined by the role
