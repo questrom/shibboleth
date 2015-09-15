@@ -379,8 +379,9 @@ function shibboleth_create_new_user($user_login) {
 
 function shibboleth_create_user_meta($user) {
 	update_user_meta($user->ID, 'shibboleth_account', true);
-	//update_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_user_level', 0);
-	update_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_capabilities', unserialize('a:1:{s:' . strlen(shibboleth_get_user_role()) . ':"' . shibboleth_get_user_role() . '";b:1;}'));
+	if("" == get_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_capabilities', true)) {
+		update_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_capabilities', unserialize('a:1:{s:' . strlen(shibboleth_get_user_role()) . ':"' . shibboleth_get_user_role() . '";b:1;}'));
+	}
 }
 
 function shibboleth_get_current_site() {

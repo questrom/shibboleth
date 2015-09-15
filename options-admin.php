@@ -88,8 +88,8 @@ function shibboleth_options_page() {
     	shibboleth_update_option('shibboleth_private_redirect', (isset($_POST['private_redirect']) ? (boolean) $_POST['private_redirect'] : false));
 		shibboleth_update_option('shibboleth_private_posttypes', $_POST['private_posttypes']);
 		shibboleth_update_option('shibboleth_update_users', (boolean) $_POST['update_users']);
-    	//shibboleth_update_option('shibboleth_update_roles', (boolean) $_POST['update_roles']);
-		shibboleth_update_option('shibboleth_update_roles', (boolean) false);
+    	shibboleth_update_option('shibboleth_update_roles', (boolean) $_POST['update_roles']);
+		//shibboleth_update_option('shibboleth_update_roles', (boolean) false);
 
 		/**
 		 * action shibboleth_form_submit
