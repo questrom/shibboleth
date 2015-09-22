@@ -42,24 +42,48 @@ add_action('init', 'shibboleth_auto_login');
  * Private content redirects inside of WordPress prior to init.
  * This function allows for private post types to redirect through Shibboleth.
  */
+
+ function get_private_posttypes() {
+	$arr = get_post_types();
+	if(shibboleth_get_option('shibboleth_private_posttypes')) {
+			$arr = array_map('trim', explode(',', shibboleth_get_option('shibboleth_private_posttypes')));
+	}
+	return $arr;
+ }
+ 
+ function assign_capabilities() {
+	$shib_roles = apply_filters('shibboleth_roles', shibboleth_get_option('shibboleth_roles'));
+	$user_role = $shib_roles['default'];
+	$subRole = get_role($user_role);
+	$arr = get_private_posttypes();
+	foreach($arr as $pp) {
+		try {
+			//$subRole->add_cap('read_private_posts');
+			//$subRole->add_cap('read_private_pages'); 
+			$subRole->add_cap('read_private_' . $pp . 's');
+		}
+		catch(Exception $e) { }
+	}
+ }
+ 
  function shibboleth_private_status_redirect() {
-         if(!is_user_logged_in() && shibboleth_get_option('shibboleth_private_redirect')) {
-                 $arr = get_post_types();
-                 if(shibboleth_get_option('shibboleth_private_posttypes')) {
-                         $arr = array_map('trim', explode(',', shibboleth_get_option('shibboleth_private_posttypes')));
-                 }
-                 $pg = get_page_by_path(basename(untrailingslashit($_SERVER['REQUEST_URI'])), OBJECT, $arr);
-                 if($pg) {
-                         $status = get_post_status($pg->ID);
-                         if("private" == $status) {
-                                 $target = "/wp-login.php";
-                                 $target = add_query_arg("action", "shibboleth", $target);
-                                 $target = add_query_arg("redirect_to", urlencode($_SERVER["REQUEST_URI"]), $target);
-                                 wp_safe_redirect($target);
-                                 exit();
-                         }
-                 }
-         }
+	if(shibboleth_get_option('shibboleth_private_redirect')) {
+		assign_capabilities();
+		if(!is_user_logged_in()) {
+			$arr = get_private_posttypes();
+			$pg = get_page_by_path(basename(untrailingslashit($_SERVER['REQUEST_URI'])), OBJECT, $arr);
+			if($pg) {
+				$status = get_post_status($pg->ID);
+				if("private" == $status) {
+					$target = "/wp-login.php";
+					$target = add_query_arg("action", "shibboleth", $target);
+					$target = add_query_arg("redirect_to", urlencode($_SERVER["REQUEST_URI"]), $target);
+					wp_safe_redirect($target);
+					exit();
+				}
+			}
+		}
+	}
  }
 
 add_action('get_header', 'shibboleth_private_status_redirect');
