@@ -67,23 +67,32 @@ add_action('init', 'shibboleth_auto_login');
  }
  
  function shibboleth_private_status_redirect() {
-	if(shibboleth_get_option('shibboleth_private_redirect')) {
-		assign_capabilities();
-		if(!is_user_logged_in()) {
-			$arr = get_private_posttypes();
-			$pg = get_page_by_path(basename(untrailingslashit($_SERVER['REQUEST_URI'])), OBJECT, $arr);
-			if($pg) {
-				$status = get_post_status($pg->ID);
-				if("private" == $status) {
-					$target = "/wp-login.php";
-					$target = add_query_arg("action", "shibboleth", $target);
-					$target = add_query_arg("redirect_to", urlencode($_SERVER["REQUEST_URI"]), $target);
-					wp_safe_redirect($target);
-					exit();
-				}
+		if(shibboleth_get_option('shibboleth_private_redirect')) {
+			//assign_capabilities();
+			if(!is_user_logged_in()) {
+					$arr = get_private_posttypes();
+					$r = $_SERVER['REQUEST_URI'];
+					if(strpos($r, '?') !== false) {
+						$r = explode('?', $r)[0];
+					}
+					$u = untrailingslashit($r);
+					$b = basename($u);
+					$pg = get_page_by_path($b, OBJECT, $arr);
+					//$pg = get_page_by_path(basename(untrailingslashit($_SERVER['REQUEST_URI'])), OBJECT, $arr);
+					if($pg) {
+							$status = get_post_status($pg->ID);
+							if("private" == $status) {
+									//shibboleth_authenticate();
+									$target = shibboleth_session_initiator_url($_SERVER["SCRIPT_URI"]);
+									//$target = "/wp-login.php";
+									//$target = add_query_arg("action", "shibboleth", $target);
+									//$target = add_query_arg("redirect_to", urlencode($_SERVER["REQUEST_URI"]), $target);
+									wp_safe_redirect($target);
+									exit();
+							}
+					}
 			}
 		}
-	}
  }
 
 add_action('get_header', 'shibboleth_private_status_redirect');
@@ -222,7 +231,7 @@ function shibboleth_authenticate($user, $username, $password) {
 	if ( shibboleth_session_active() ) {
 		return shibboleth_authenticate_user();
 	} else {
-		$initiator_url = shibboleth_session_initiator_url( $_REQUEST['redirect_to'] );
+		$initiator_url = shibboleth_session_initiator_url($_REQUEST['redirect_to']);
 		wp_redirect($initiator_url);
 		exit;
 	}
@@ -298,8 +307,8 @@ function shibboleth_session_initiator_url($redirect = null) {
 	// first build the target URL.  This is the WordPress URL the user will be returned to after Shibboleth
 	// is done, and will handle actually logging the user into WordPress using the data provdied by Shibboleth
 	 if ( function_exists('switch_to_blog') ) {
-			if ( is_multisite() ) switch_to_blog($GLOBALS['current_blog']->blog_id);
-			else switch_to_blog($GLOBALS['current_site']->blog_id);
+		if ( is_multisite() ) switch_to_blog($GLOBALS['current_blog']->blog_id);
+		else switch_to_blog($GLOBALS['current_site']->blog_id);
 	}
 	//if ( function_exists('switch_to_blog') ) switch_to_blog($GLOBALS['current_site']->blog_id);
 	$target = site_url('wp-login.php');
@@ -358,6 +367,9 @@ function shibboleth_authenticate_user() {
 	if ( !$user->ID ) {
 		$user = shibboleth_create_new_user($username);
 	}
+	else {
+		assign_capabilities();
+	}
 
 	if ( !$user->ID ) {
 		$error_message = 'Unable to create account based on data provided.';
@@ -403,6 +415,9 @@ function shibboleth_create_new_user($user_login) {
 
 function shibboleth_create_user_meta($user) {
 	update_user_meta($user->ID, 'shibboleth_account', true);
+	//assign_capabilities();
+	$user->add_cap('read_private_posts');
+	$user->add_cap('read_private_pages'); 
 	if("" == get_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_capabilities', true)) {
 		update_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_capabilities', unserialize('a:1:{s:' . strlen(shibboleth_get_user_role()) . ':"' . shibboleth_get_user_role() . '";b:1;}'));
 	}
