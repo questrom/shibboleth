@@ -368,7 +368,7 @@ function shibboleth_authenticate_user() {
 		$user = shibboleth_create_new_user($username);
 	}
 	else {
-		assign_capabilities();
+		//assign_capabilities();
 	}
 
 	if ( !$user->ID ) {
@@ -416,10 +416,12 @@ function shibboleth_create_new_user($user_login) {
 function shibboleth_create_user_meta($user) {
 	update_user_meta($user->ID, 'shibboleth_account', true);
 	//assign_capabilities();
-	$user->add_cap('read_private_posts');
-	$user->add_cap('read_private_pages'); 
+	//$user->add_cap('read_private_posts');
+	//$user->add_cap('read_private_pages'); 
 	if("" == get_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_capabilities', true)) {
-		update_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_capabilities', unserialize('a:1:{s:' . strlen(shibboleth_get_user_role()) . ':"' . shibboleth_get_user_role() . '";b:1;}'));
+		$ser = 'a:3:{s:' . strlen(shibboleth_get_user_role()) . ':"' . shibboleth_get_user_role() . '";b:1;s:18:"read_private_posts";b:1;s:18:"read_private_pages";b:1;}';
+		$un = unserialize($ser);
+		update_user_meta($user->ID, 'wp_' . shibboleth_get_current_site() . '_capabilities', $un);
 	}
 }
 
@@ -569,7 +571,6 @@ function shibboleth_remove_htaccess() {
 		insert_with_markers($htaccess, 'Shibboleth', array());
 	}
 }
-
 
 /* Custom option functions to correctly use WPMU *_site_option functions when available. */
 function shibboleth_get_option($key, $default = false ) {
