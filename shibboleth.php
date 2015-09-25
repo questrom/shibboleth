@@ -68,7 +68,7 @@ add_action('init', 'shibboleth_auto_login');
  
  function shibboleth_private_status_redirect() {
 		if(shibboleth_get_option('shibboleth_private_redirect')) {
-			//assign_capabilities();
+			assign_capabilities();
 			if(!is_user_logged_in()) {
 					$arr = get_private_posttypes();
 					$r = $_SERVER['REQUEST_URI'];
